@@ -185,7 +185,7 @@
                 </button>
 
                 <button onclick="exportCSV()" class="px-4 py-2 rounded-lg font-bold text-slate-900 bg-cyan-400 hover:bg-cyan-300 transition flex items-center gap-1.5 cursor-pointer">
-                    <i data-lucide="download" class="w-4 h-4"></i> EXPORT CSV
+                    <i data-lucide="download" class="w-4 h-4"></i> EXPORT EXCEL (CSV)
                 </button>
             </div>
         </header>
@@ -424,7 +424,7 @@
                             </div>
                         </div>
 
-                        <!-- CARD FITUR BARU: AMPERE PEAK -->
+                        <!-- PANEL AMPERE PEAK -->
                         <div class="bg-slate-950/70 p-3 rounded-lg border border-slate-800 hud-card-accent-magenta">
                             <div class="flex justify-between items-center text-xs font-mono-custom text-slate-400">
                                 <span class="font-bold uppercase text-rose-400">AMPERE PEAK</span>
@@ -636,13 +636,12 @@
                 telemetryState.batCurrent = parseFloat(data.current);
                 telemetryState.ctrlCurrent = parseFloat(data.current);
                 
-                // Perekaman otomatis Ampere Peak
+                // Perekaman Ampere Peak
                 if (telemetryState.batCurrent > telemetryState.peakCurrent) {
                     telemetryState.peakCurrent = telemetryState.batCurrent;
                 }
             }
-            
-            // Mengakomodasi jika ESP32 mengirim kunci JSON khusus peak
+
             if (data.peak_current !== undefined) telemetryState.peakCurrent = parseFloat(data.peak_current);
             if (data.ampere_peak !== undefined) telemetryState.peakCurrent = parseFloat(data.ampere_peak);
 
@@ -905,6 +904,7 @@
             });
         }
 
+        // PENAMBAHAN KOLOM AMPERE PEAK PADA EXPORT EXCEL (CSV)
         function exportCSV() {
             if (telemetryState.dataBuffer.length === 0) {
                 alert("Tidak ada data telemetri yang terekam!");
