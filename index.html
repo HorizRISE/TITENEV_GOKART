@@ -84,6 +84,7 @@
         }
 
         .hud-card-accent-yellow { border-top: 3px solid #ffe600; }
+        .hud-card-accent-magenta { border-top: 3px solid #ff2a5f; }
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         .font-mono-custom { font-family: 'JetBrains Mono', monospace; }
 
@@ -423,6 +424,18 @@
                             </div>
                         </div>
 
+                        <!-- CARD FITUR BARU: AMPERE PEAK -->
+                        <div class="bg-slate-950/70 p-3 rounded-lg border border-slate-800 hud-card-accent-magenta">
+                            <div class="flex justify-between items-center text-xs font-mono-custom text-slate-400">
+                                <span class="font-bold uppercase text-rose-400">AMPERE PEAK</span>
+                                <i data-lucide="trending-up" class="w-4 h-4 text-rose-400"></i>
+                            </div>
+                            <div class="flex items-baseline justify-between mt-1">
+                                <span id="valPeakCurrent" class="text-3xl sm:text-4xl font-black font-orbitron text-rose-400">-</span>
+                                <span class="text-xs font-bold text-rose-400 font-mono-custom">AMP PEAK</span>
+                            </div>
+                        </div>
+
                         <div class="bg-slate-950/70 p-3 rounded-lg border border-slate-800">
                             <div class="flex justify-between items-center text-xs font-mono-custom text-slate-400">
                                 <span class="font-bold">ARUS KONTROLER</span>
@@ -460,6 +473,7 @@
             
             batVoltage: 0.0,
             batCurrent: 0.0,
+            peakCurrent: 0.0,
             batTemp: 0.0,
             soc: 0.0,
             ctrlCurrent: 0.0,
@@ -621,7 +635,17 @@
             if (data.current !== undefined) {
                 telemetryState.batCurrent = parseFloat(data.current);
                 telemetryState.ctrlCurrent = parseFloat(data.current);
+                
+                // Perekaman otomatis Ampere Peak
+                if (telemetryState.batCurrent > telemetryState.peakCurrent) {
+                    telemetryState.peakCurrent = telemetryState.batCurrent;
+                }
             }
+            
+            // Mengakomodasi jika ESP32 mengirim kunci JSON khusus peak
+            if (data.peak_current !== undefined) telemetryState.peakCurrent = parseFloat(data.peak_current);
+            if (data.ampere_peak !== undefined) telemetryState.peakCurrent = parseFloat(data.ampere_peak);
+
             if (data.battery_temp !== undefined) telemetryState.batTemp = parseFloat(data.battery_temp);
             if (data.soc !== undefined) telemetryState.soc = parseFloat(data.soc);
             if (data.power !== undefined) telemetryState.powerKw = parseFloat(data.power) / 1000.0;
@@ -702,6 +726,7 @@
 
             document.getElementById('valBatVoltage').innerText = "-";
             document.getElementById('valBatCurrent').innerText = "-";
+            document.getElementById('valPeakCurrent').innerText = "-";
             document.getElementById('valCtrlCurrent').innerText = "-";
             document.getElementById('valPowerKw').innerText = "-";
 
@@ -762,6 +787,7 @@
 
             document.getElementById('valBatVoltage').innerText = telemetryState.batVoltage.toFixed(1);
             document.getElementById('valBatCurrent').innerText = telemetryState.batCurrent.toFixed(1);
+            document.getElementById('valPeakCurrent').innerText = telemetryState.peakCurrent.toFixed(1);
             document.getElementById('valCtrlCurrent').innerText = telemetryState.ctrlCurrent.toFixed(1);
             document.getElementById('valPowerKw').innerText = telemetryState.powerKw.toFixed(2);
 
@@ -843,6 +869,7 @@
             telemetryState.currentLapNum = 1;
             telemetryState.lapTopSpeed = 0.0;
             telemetryState.overallTopSpeed = 0.0;
+            telemetryState.peakCurrent = 0.0;
             telemetryState.dataBuffer = [];
 
             if (timerInterval) clearInterval(timerInterval);
@@ -866,6 +893,7 @@
                 lapNum: telemetryState.currentLapNum,
                 batVoltage: telemetryState.batVoltage,
                 batCurrent: telemetryState.batCurrent,
+                peakCurrent: telemetryState.peakCurrent,
                 batTemp: telemetryState.batTemp,
                 soc: telemetryState.soc,
                 ctrlCurrent: telemetryState.ctrlCurrent,
@@ -885,7 +913,7 @@
 
             const headers = [
                 "Timestamp_ISO", "Elapsed_ms", "Lap_Number", "Battery_Voltage_V", "Battery_Current_A",
-                "Battery_Temp_C", "SOC_Percent", "Controller_Current_A", "Power_kW",
+                "Ampere_Peak_A", "Battery_Temp_C", "SOC_Percent", "Controller_Current_A", "Power_kW",
                 "Controller_Temp_C", "Motor_Temp_C", "RPM", "Speed_kmh"
             ];
 
@@ -893,7 +921,7 @@
             telemetryState.dataBuffer.forEach(d => {
                 rows.push([
                     d.timestamp, d.elapsedMs, d.lapNum, d.batVoltage, d.batCurrent,
-                    d.batTemp, d.soc, d.ctrlCurrent, d.powerKw,
+                    d.peakCurrent, d.batTemp, d.soc, d.ctrlCurrent, d.powerKw,
                     d.ctrlTemp, d.motorTemp, d.rpm, d.speed
                 ].join(","));
             });
@@ -915,6 +943,7 @@
             telemetryState.packetCount = 0;
             telemetryState.batVoltage = 0.0;
             telemetryState.batCurrent = 0.0;
+            telemetryState.peakCurrent = 0.0;
             telemetryState.batTemp = 0.0;
             telemetryState.soc = 0.0;
             telemetryState.ctrlCurrent = 0.0;
