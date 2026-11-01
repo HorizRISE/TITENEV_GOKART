@@ -904,7 +904,7 @@
             });
         }
 
-        // PENAMBAHAN KOLOM AMPERE PEAK PADA EXPORT EXCEL (CSV)
+        // FUNGSI EXPORT EXCEL (CSV) MEMINDAHKAN kW MENJADI WATT HANYA PADA FILE UNDUHAN
         function exportCSV() {
             if (telemetryState.dataBuffer.length === 0) {
                 alert("Tidak ada data telemetri yang terekam!");
@@ -913,15 +913,18 @@
 
             const headers = [
                 "Timestamp_ISO", "Elapsed_ms", "Lap_Number", "Battery_Voltage_V", "Battery_Current_A",
-                "Ampere_Peak_A", "Battery_Temp_C", "SOC_Percent", "Controller_Current_A", "Power_kW",
+                "Ampere_Peak_A", "Battery_Temp_C", "SOC_Percent", "Controller_Current_A", "Power_Watt",
                 "Controller_Temp_C", "Motor_Temp_C", "RPM", "Speed_kmh"
             ];
 
             const rows = [headers.join(",")];
             telemetryState.dataBuffer.forEach(d => {
+                // Konversi kW ke Watt (dikali 1000) khusus untuk penulisan file Excel
+                const powerInWatt = (d.powerKw * 1000.0).toFixed(1);
+
                 rows.push([
                     d.timestamp, d.elapsedMs, d.lapNum, d.batVoltage, d.batCurrent,
-                    d.peakCurrent, d.batTemp, d.soc, d.ctrlCurrent, d.powerKw,
+                    d.peakCurrent, d.batTemp, d.soc, d.ctrlCurrent, powerInWatt,
                     d.ctrlTemp, d.motorTemp, d.rpm, d.speed
                 ].join(","));
             });
